@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:english_words/english_words.dart';
+import 'package:string_validator/string_validator.dart';
+import 'package:translit/translit.dart';
 
 void main() => runApp(MyApp());
 
@@ -13,7 +15,6 @@ class MyApp extends StatelessWidget {
   }
 }
 
-
 class RandomWords extends StatefulWidget {
   @override
   _RandomWordsState createState() => _RandomWordsState();
@@ -26,16 +27,25 @@ class _RandomWordsState extends State<RandomWords> {
 
   void _pushSaved() {
     Navigator.of(context).push(
-      // NEW lines from here...
       MaterialPageRoute<void>(
         builder: (BuildContext context) {
-          final tiles = _saved.map(
-                (WordPair pair) {
+          var tiles = _saved.map(
+            (WordPair pair) {
+              final stringPair = pair.toString();
+              final unTranslitPair = Translit().toTranslit(source: stringPair);
+              final translitPair = Translit().unTranslit(source: unTranslitPair);
               return ListTile(
+                leading: Text(translitPair),
+                trailing: Icon(
+                  Icons.brightness_1,
+                  color: isLength(stringPair, 4 , 7) ? Colors.green : isLength(stringPair, 7 , 10) ? Colors.yellow : Colors.red,
+                ),
+                tileColor: Colors.white,
                 title: Text(
                   pair.asPascalCase,
                   style: _biggerFont,
                 ),
+
               );
             },
           );
@@ -52,7 +62,6 @@ class _RandomWordsState extends State<RandomWords> {
         },
       ),
     );
-
   }
 
   @override
@@ -67,6 +76,7 @@ class _RandomWordsState extends State<RandomWords> {
       body: _buildSuggestions(),
     );
   }
+
   Widget _buildSuggestions() {
     return ListView.builder(
         padding: const EdgeInsets.all(16.0),
@@ -80,6 +90,7 @@ class _RandomWordsState extends State<RandomWords> {
           return _buildRow(_suggestions[index]);
         });
   }
+
   Widget _buildRow(WordPair pair) {
     final alreadySaved = _saved.contains(pair);
     return ListTile(
@@ -87,7 +98,7 @@ class _RandomWordsState extends State<RandomWords> {
         pair.asPascalCase,
         style: _biggerFont,
       ),
-      tileColor: Colors.lightBlueAccent,
+      tileColor: Colors.white,
       trailing: Icon(
         alreadySaved ? Icons.favorite : Icons.favorite_border,
         color: alreadySaved ? Colors.red : null,
@@ -99,8 +110,7 @@ class _RandomWordsState extends State<RandomWords> {
           } else {
             _saved.add(pair);
           }
-          }
-        );
+        });
       },
     );
   }
